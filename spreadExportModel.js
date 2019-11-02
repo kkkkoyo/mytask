@@ -3,6 +3,8 @@ let: setInitRow = 2;
 // 書き込む列数を取得
 let: insertCols = 7;
 let: statusCol = 6;
+let: objectCol = 5;
+
 let: idCol = 3;
 
 var sheetName;
@@ -123,9 +125,11 @@ function getTaskList(setInitRow) {
    
    var statusRange = ssDaily.getRange(setInitRow,statusCol,getLastRow - setInitRow);
    var idColRange = ssDaily.getRange(setInitRow,idCol,getLastRow - setInitRow);
-   
-   var statusCols = idColRange.getValues();
+   var objectColRange = ssDaily.getRange(setInitRow,objectCol,getLastRow - setInitRow);
+
+   var statusCols = statusRange.getValues();
    var idCols = idColRange.getValues();
+   var objectCols = objectColRange.getValues();
       
    for(var i=0;i<myTaskLists.length;i++) {
    
@@ -145,25 +149,32 @@ function getTaskList(setInitRow) {
                       
            if(id == idCols[getIdCols]) {
 
-            if(statusCols[getIdCols]) {
-              // idが記入済みのものが、未完了ステータスのものは載せる
+            // 完了ステータス
+            if(statusCols[getIdCols] == 'true') {
               // 完了の場合はbreak
-              Logger.log(id+ ":===:" +idCols[getIdCols]);
+              // Logger.log(id+ ":===:" +idCols[getIdCols]);
               isBreak = true;
-            }
-            if(!statusCols[getIdCols] && !status) {
-              // 載っているものは、未完了で、自分も未完了の場合、載せない
-              isBreak = true;
+              
+              Logger.log("完了:"+objectCols+":"+getIdCols);
+            } else {
+              Logger.log("未完了");
+              if(!status) {
+                Logger.log("memo"+statusCols[getIdCols]);
+                isBreak = true;
+              }
             }
            }else {
-             Logger.log(id+ "::" +idCols[getIdCols]);
+             // Logger.log(id+ "::" +idCols[getIdCols]);
            }
        }
 
       // 完了していないものは載せない (ログは載せる)
+
+      // 完了していないで、ログは記入しない→break
       if(!status && !this.isWriteLog) {
         continue;
       }
+
        // idが既に記入済みのものは載せない
        //  未完了→完了のものは載せる
        if(isBreak) {

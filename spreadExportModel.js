@@ -1,10 +1,7 @@
 // 何行目から挿入するか
 let: setInitRow = 2;
-
 // 書き込む列数を取得
 let: insertCols = 7;
-
-let: detailIdCol = 3;
 let: statusCol = 6;
 let: idCol = 3;
 
@@ -15,7 +12,6 @@ var isWriteLog = false;
 function exportDaily(ss,sheetName,isWriteLog){
   
   var arrData = []; 
-  var taskList = []; 
   var dailySheet = ss.getSheetByName(sheetName);
   
   this.isWriteLog = isWriteLog;

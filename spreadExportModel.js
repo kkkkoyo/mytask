@@ -120,11 +120,11 @@ function getTaskList(setInitRow) {
        if(notes == null) {
         notes = "";
        }
-       var text = "";
        if(this.isWriteLog) {
-        text = "_";
+         arrayData.push([getDate(),getDayOfWeek(),id,task,detail,status,notes,""]);
        }
-        ary.push([text + getDate(),"(" + getDayOfWeek() + ")",id,task,detail,status,notes]);
+        ary.push([getDate(),"(" + getDayOfWeek() + ")",id,task,detail,status,notes]);
+        // log用のデータ
      }
   }
   

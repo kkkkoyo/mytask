@@ -33,9 +33,9 @@ function writeWeeklySheet(SheetName) {
     var writeSheet = ss_active_all.getSheetByName(SheetName);
     var logSheet = ss_active_all.getSheetByName("log");
 
-    var arrData = getLogSheet(logSheet);
-    Logger.log(arrData);
-    write(ss_active_all,writeSheet,arrData);
+    // var arrData = getLogSheet(logSheet);
+    // Logger.log(arrData);
+    write(ss_active_all,writeSheet,arrayData);
 }
 
 function write(ss_active_all,writeSheet,arrData) {
@@ -53,8 +53,8 @@ function write(ss_active_all,writeSheet,arrData) {
     writeSheet.insertRows(setWriteSheetInitRow,insertRows);
      // 値をセット
   
-    makeCheckbox(setWriteSheetInitRow - 1,setWriteSheetInitRow + insertRows - 1,4,5,writeSheet,ss_active_all);   
-    writeSheet.getRange(setWriteSheetInitRow,setInitCol,insertRows,7).setValues(arrData);
+    makeCheckbox(setWriteSheetInitRow - 1,setWriteSheetInitRow + insertRows - 1,statusCol-1,statusCol,writeSheet,ss_active_all);   
+    writeSheet.getRange(setWriteSheetInitRow,setInitCol,insertRows,8).setValues(arrData);
 }
 
 // logシートの中身を取得
@@ -64,7 +64,7 @@ let: setWriteSheetInitRow = 4;
 let: _setInitRow = 2;
 // 日付のcol
 let: dateCol = 1;
-let: statusCol = 5;
+let: statusCol = 6;
 let: setInitCol = 1;
 
 // id	task	detail	status	memo を返す
@@ -85,12 +85,13 @@ function getLogSheet(logSheet) {
       // 今日の日付を取得
       if(dateCols[i-1] == "_"+getDate()) {
         var weekDay = logSheet.getRange(i+1,2,i).getValues();
+        var id = logSheet.getRange(i+1,3,i).getValues();
         var task = logSheet.getRange(i+1,4,i).getValues();
         var detail = logSheet.getRange(i+1,5,i).getValues();
         var status = logSheet.getRange(i+1,6,i).getValues();
         var memo = logSheet.getRange(i+1,7,i).getValues();
         var ojtMemo = logSheet.getRange(i+1,8,i).getValues();
-        array.push([getDate(),weekDay,task,detail,status,memo,ojtMemo]);
+        array.push([getDate(),weekDay,id,task,detail,status,memo,ojtMemo]);
       }
   }
   return array;

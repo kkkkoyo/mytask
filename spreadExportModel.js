@@ -137,11 +137,6 @@ function getTaskList(setInitRow) {
 
        var status = getTask(tasks)[j].completed;
        var id = getTask(tasks)[j].id;
-
-       // 完了していないものは載せない
-       if(!status && !this.isWriteLog) {
-         continue;
-       }
        
        var isBreak = false;
               
@@ -149,12 +144,28 @@ function getTaskList(setInitRow) {
        for(var getIdCols = 0;getIdCols < idCols.length; getIdCols++) {
                       
            if(id == idCols[getIdCols]) {
+
+            if(statusCols[getIdCols]) {
+              // idが記入済みのものが、未完了ステータスのものは載せる
+              // 完了の場合はbreak
               Logger.log(id+ ":===:" +idCols[getIdCols]);
               isBreak = true;
+            }
+            if(!statusCols[getIdCols] && !status) {
+              // 載っているものは、未完了で、自分も未完了の場合、載せない
+              isBreak = true;
+            }
            }else {
              Logger.log(id+ "::" +idCols[getIdCols]);
            }
        }
+
+      // 完了していないものは載せない (ログは載せる)
+      if(!status && !this.isWriteLog) {
+        continue;
+      }
+       // idが既に記入済みのものは載せない
+       //  未完了→完了のものは載せる
        if(isBreak) {
          continue;
        }

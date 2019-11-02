@@ -22,7 +22,6 @@ function exportDaily(ss,sheetName,isWriteLog){
   var setInitCol = 1;
   
   var arrData = getTaskList(setInitRow);
-  Logger.log(arrData);
 
   // 書き込む行数を取得
   var insertRows = arrData.length;
@@ -45,18 +44,102 @@ function exportDaily(ss,sheetName,isWriteLog){
 }
 
 
-// https://www.virment.com/use-google-tasks-from-script/
-function getTaskLists() {
-  var taskLists = Tasks.Tasklists.list().getItems();
-  if (!taskLists) {
-    return [];
+// id	task	detail	status	memo を返す
+function getTaskList(setInitRow) {
+   
+   var ssDaily = SpreadsheetApp.getActive().getSheetByName(this.sheetName);
+
+   var myTaskLists = getTaskLists();   
+   var ary = [];
+   
+   var getLastRow = ssDaily.getLastRow() + 1;
+   
+   if(getLastRow < setInitRow + 1) {
+     getLastRow = setInitRow + 1;
+   }
+   
+   var statusRange = ssDaily.getRange(setInitRow,statusCol,getLastRow - setInitRow);
+   var idColRange = ssDaily.getRange(setInitRow,idCol,getLastRow - setInitRow);
+   var objectColRange = ssDaily.getRange(setInitRow,objectCol,getLastRow - setInitRow);
+
+   var statusCols = statusRange.getValues();
+   var idCols = idColRange.getValues();
+   var objectCols = objectColRange.getValues();
+      
+   for(var i=0;i<myTaskLists.length;i++) {
+   
+     var taskId = myTaskLists[i].id;
+     var tasks = Tasks.Tasks.list(taskId).getItems();
+     var task = myTaskLists[i].name;
+     
+     for(var j = 0;j < getTask(tasks).length; j++) {
+
+       var status = getTask(tasks)[j].completed;
+       var id = getTask(tasks)[j].id;
+       
+       var isBreak = false;
+              
+       // idが既に記入済みのものだったら、記載しない
+       for(var getIdCols = 0;getIdCols < idCols.length; getIdCols++) {
+                      
+           if(id == idCols[getIdCols]) {
+
+            // 完了ステータス
+            if(statusCols[getIdCols] == 'true') {
+              // 完了の場合はbreak
+              // Logger.log(id+ ":===:" +idCols[getIdCols]);
+              isBreak = true;
+              
+            } else {
+              if(!status) {
+                isBreak = true;
+              }
+            }
+           }else {
+             // Logger.log(id+ "::" +idCols[getIdCols]);
+           }
+       }
+
+      // 完了していないものは載せない (ログは載せる)
+
+      // 完了していないで、ログは記入しない→break
+      if(!status && !this.isWriteLog) {
+        continue;
+      }
+
+       // idが既に記入済みのものは載せない
+       //  未完了→完了のものは載せる
+       if(isBreak) {
+         continue;
+       }
+       
+                
+       var detail = getTask(tasks)[j].title;
+       var notes = getTask(tasks)[j].notes;
+              
+       if(notes == null) {
+        notes = "";
+       }
+       var text = "";
+       if(this.isWriteLog) {
+        text = "_";
+       }
+        ary.push([text + getDate(),"(" + getDayOfWeek() + ")",id,task,detail,status,notes]);
+     }
   }
-  return taskLists.map(function(taskList) {
-    return {
-      id: taskList.getId(),
-      name: taskList.getTitle()
-    };
-  });
+  
+  return ary;
+}
+
+// 特定のシートのメモ化を行う関数
+function getDailySheet() {
+
+if (getMainSheet.memoSheet) {
+    return getMainSheet.memoSheet; 
+  }
+
+  getMainSheet.memoSheet = SpreadsheetApp.getActive().getSheetByName(this.sheetName);
+  return getMainSheet.memoSheet;
 }
 
 /*
@@ -109,101 +192,16 @@ function getTasks(taskListId) {
   });
 }
 
-// id	task	detail	status	memo を返す
-function getTaskList(setInitRow) {
-   
-   var ssDaily = SpreadsheetApp.getActive().getSheetByName(this.sheetName);
-
-   var myTaskLists = getTaskLists();   
-   var ary = [];
-   
-   var getLastRow = ssDaily.getLastRow() + 1;
-   
-   if(getLastRow < setInitRow + 1) {
-     getLastRow = setInitRow + 1;
-   }
-   
-   var statusRange = ssDaily.getRange(setInitRow,statusCol,getLastRow - setInitRow);
-   var idColRange = ssDaily.getRange(setInitRow,idCol,getLastRow - setInitRow);
-   var objectColRange = ssDaily.getRange(setInitRow,objectCol,getLastRow - setInitRow);
-
-   var statusCols = statusRange.getValues();
-   var idCols = idColRange.getValues();
-   var objectCols = objectColRange.getValues();
-      
-   for(var i=0;i<myTaskLists.length;i++) {
-   
-     var taskId = myTaskLists[i].id;
-     var tasks = Tasks.Tasks.list(taskId).getItems();
-     var task = myTaskLists[i].name;
-     
-     for(var j = 0;j < getTask(tasks).length; j++) {
-
-       var status = getTask(tasks)[j].completed;
-       var id = getTask(tasks)[j].id;
-       
-       var isBreak = false;
-              
-       // idが既に記入済みのものだったら、記載しない
-       for(var getIdCols = 0;getIdCols < idCols.length; getIdCols++) {
-                      
-           if(id == idCols[getIdCols]) {
-
-            // 完了ステータス
-            if(statusCols[getIdCols] == 'true') {
-              // 完了の場合はbreak
-              // Logger.log(id+ ":===:" +idCols[getIdCols]);
-              isBreak = true;
-              
-              Logger.log("完了:"+objectCols+":"+getIdCols);
-            } else {
-              Logger.log("未完了");
-              if(!status) {
-                Logger.log("memo"+statusCols[getIdCols]);
-                isBreak = true;
-              }
-            }
-           }else {
-             // Logger.log(id+ "::" +idCols[getIdCols]);
-           }
-       }
-
-      // 完了していないものは載せない (ログは載せる)
-
-      // 完了していないで、ログは記入しない→break
-      if(!status && !this.isWriteLog) {
-        continue;
-      }
-
-       // idが既に記入済みのものは載せない
-       //  未完了→完了のものは載せる
-       if(isBreak) {
-         continue;
-       }
-       
-                
-       var detail = getTask(tasks)[j].title;
-       var notes = getTask(tasks)[j].notes;
-       
-       Logger.log(notes);
-       
-       if(notes == null) {
-        notes = "";
-       }
-        ary.push([getDate(),getDayOfWeek(),id,task,detail,status,notes]);
-     }
+// https://www.virment.com/use-google-tasks-from-script/
+function getTaskLists() {
+  var taskLists = Tasks.Tasklists.list().getItems();
+  if (!taskLists) {
+    return [];
   }
-  
-  return ary;
-}
-
-// 特定のシートのメモ化を行う関数
-function getDailySheet() {
-
-if (getMainSheet.memoSheet) {
-    return getMainSheet.memoSheet; 
-  }
-
-  getMainSheet.memoSheet = SpreadsheetApp.getActive().getSheetByName(this.sheetName);
-  return getMainSheet.memoSheet;
+  return taskLists.map(function(taskList) {
+    return {
+      id: taskList.getId(),
+      name: taskList.getTitle()
+    };
+  });
 }

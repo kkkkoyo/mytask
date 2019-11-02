@@ -139,9 +139,9 @@ function getTaskList(setInitRow) {
        var id = getTask(tasks)[j].id;
 
        // 完了していないものは載せない
-       // if(!status) {
-        //  continue;
-       // }
+       if(!status && !this.isWriteLog) {
+         continue;
+       }
        
        var isBreak = false;
               
